@@ -1,0 +1,42 @@
+id: build_dbt
+namespace: tutorial.builtin
+
+tasks:
+  - id: clone_dbt
+    type: io.kestra.plugin.core.flow.WorkingDirectory
+    tasks:
+      - id: clone_repository
+        type: io.kestra.plugin.git.Clone
+        url: https://github.com/sasano8/sample_dbt.git
+        branch: main
+
+      - id: run_dbt
+        # type: io.kestra.plugin.dbt.cli.DbtCLI  # profiles とかの追加拡張ができると思われる（あとビルド結果が得られない）
+        type: io.kestra.plugin.scripts.shell.Commands
+        runner: DOCKER
+        docker:
+          image: python:3.11-slim
+        beforeCommands:
+          - pip install uv
+          - uv venv --quiet
+          - . .venv/bin/activate --quiet
+          - uv sync
+        commands:
+          # - ls -l
+          - dbt deps
+          - dbt build
+          # - dbt seed
+          # - dbt seed --full-refresh
+          # - dbt run
+        outputFiles:
+          - "target/**"
+        # profiles: |
+        #   my_dbt_project:
+        #     outputs:
+        #       dev:
+        #         type: duckdb
+        #         path: ":memory:"
+        #         fixed_retries: 1
+        #         threads: 16
+        #         timeout_seconds: 300
+        #     target: dev

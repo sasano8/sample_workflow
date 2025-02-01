@@ -1,0 +1,9 @@
+id: tutorial_python_run
+namespace: tutorial.builtin
+
+tasks:
+  - id: custom_image
+    type: io.kestra.plugin.scripts.python.Script
+    containerImage: docker.io/python:3.9.21-alpine3.21
+    script: |
+        print("hello world")

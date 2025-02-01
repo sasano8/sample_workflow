@@ -1,0 +1,36 @@
+id: tutorial_receive_inputs
+namespace: tutorial.builtin
+
+inputs:
+  - id: user
+    type: STRING
+    defaults: bob
+  - id: message
+    type: STRING
+    defaults: hello
+  - id: dropdown
+    type: SELECT
+    displayName: "A dropdown input"
+    defaults: VALUE_1
+    values:
+      - VALUE_1
+      - VALUE_2
+      - VALUE_3
+  - id: json
+    type: JSON
+    displayName: "A JSON input"
+    defaults: |
+      [{"name": "kestra", "rating": "best in class"}]
+
+tasks:
+  - id: log_input
+    type: io.kestra.plugin.core.log.Log
+    message: "{{ inputs.user }}: {{ inputs.message }} {{ inputs.dropdown }}"
+
+  - id: log_json
+    type: io.kestra.plugin.core.log.Log
+    message: "{{ inputs.json }}"
+
+  - id: log_key
+    type: io.kestra.plugin.core.log.Log
+    message: "my_key: {{ kv('my_key') }}"

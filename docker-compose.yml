@@ -1,0 +1,40 @@
+---
+services:
+  kestra:
+    image: kestra/kestra:latest
+    container_name: myflow
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - ".configs/kestra.yaml:/etc/config/application.yaml"
+      - ".volume/kestra:/tmp"
+      - ".volume/share:/mnt/share"
+    ports:
+      - 8080:8080
+    user: root:root
+    command:
+      - server
+      - local  # 開発用　データベースなどが内包されている
+      - "--flow-path"
+      - "/mnt/share/kestra_flows"
+  # portainer:
+  #   image: portainer/portainer-ce:2.21.5
+  #   container_name: portainer
+  #   volumes:
+  #     - "/var/run/docker.sock:/var/run/docker.sock"
+  #     - ".volume/portainer_data:/data"
+  #   ports:
+  #     - "8000:8000"
+  #     - "9443:9443"
+  #   # restart: always
+  unitycatalog:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/UnityCatalog.Dockerfile
+    ports:
+      - "8888:8080"
+      - "3000:3000"
+    environment:
+      JAVA_HOME: /usr/local/openjdk-17
+    # command: ["bin/start-uc-server"]
+  # unitycatalog-ui:
+  

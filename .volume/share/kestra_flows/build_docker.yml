@@ -1,0 +1,22 @@
+id: tutorial_docker_build
+namespace: tutorial.builtin
+
+tasks:
+  - id: docker_build
+    type: io.kestra.plugin.docker.Build
+    dockerfile: |
+      FROM ubuntu
+      ARG APT_PACKAGES=""
+      RUN apt-get update && apt-get install -y --no-install-recommends ${APT_PACKAGES};
+    platforms:
+      - linux/amd64
+    tags:
+      - private-registry.io/unit-test:latest
+    buildArgs:
+      APT_PACKAGES: curl
+    labels:
+      unit-test: "true"
+    # credentials:
+    #   registry: <registry.url.com>
+    #   username: <your-user>
+    #   password: <your-password>

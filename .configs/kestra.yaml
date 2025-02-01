@@ -1,0 +1,6 @@
+kestra:
+  plugins:
+    configurations:
+      - type: io.kestra.plugin.runner.docker.Docker
+        values:
+          volumeEnabled: true
