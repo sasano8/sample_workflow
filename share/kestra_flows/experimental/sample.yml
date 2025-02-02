@@ -1,0 +1,7 @@
+id: experimental_hello_run
+namespace: tutorial.experimental
+
+tasks:
+  - id: run
+    type: io.kestra.plugin.docker.Run
+    containerImage: docker.io/hello-world
