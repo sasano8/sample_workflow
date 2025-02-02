@@ -85,6 +85,7 @@ def parse_cn_and_san_from_cert_io(io: BinaryIO | str):
     subject_alternative_name = ext.value.get_values_for_type(x509.DNSName)
 
     # これまでは cn が使われていたが、近年では san が推奨されている
+    # san はリスト型、かつ、ドメイン形式だが、最終ドメイン（一番左）が１つでもデバイスIDと一致すればよしとする？
     return {"cn": common_name, "san": subject_alternative_name}
 
 
