@@ -1,0 +1,28 @@
+id: setup_default_kv
+namespace: tutorial.builtin
+
+tasks:
+  - id: PUT_AWS_ACCESS_KEY_ID
+    type: io.kestra.plugin.core.http.Request
+    uri: http://localhost:8080/api/v1/namespaces/tutorial.builtin/kv/AWS_ACCESS_KEY_ID
+    method: PUT
+    contentType: application/json
+    body: '"admin"'
+
+  - id: PUT_AWS_SECRET_ACCESS_KEY
+    type: io.kestra.plugin.core.http.Request
+    uri: http://localhost:8080/api/v1/namespaces/tutorial.builtin/kv/AWS_SECRET_ACCESS_KEY
+    method: PUT
+    contentType: application/json
+    body: '"password"'
+  
+  - id: PUT_AWS_REGION
+    type: io.kestra.plugin.core.http.Request
+    uri: http://localhost:8080/api/v1/namespaces/tutorial.builtin/kv/AWS_REGION
+    method: PUT
+    contentType: application/json
+    body: '"us-east-1"'
+
+  - id: echo
+    type: io.kestra.plugin.core.log.Log
+    message: "{{ kv('AWS_REGION') }}"

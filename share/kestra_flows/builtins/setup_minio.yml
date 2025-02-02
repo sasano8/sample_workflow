@@ -1,0 +1,20 @@
+id: setup_minio
+namespace: tutorial.builtin
+
+tasks:
+  - id: run_mc
+    type: io.kestra.plugin.scripts.shell.Commands
+    runner: DOCKER
+    docker:
+      image: minio/mc
+      entryPoint:
+        - ""
+      networkMode: "internal"
+    env:
+      AWS_ACCESS_KEY_ID: "{{ kv('AWS_ACCESS_KEY_ID') }}"
+      AWS_SECRET_ACCESS_KEY: "{{ kv('AWS_SECRET_ACCESS_KEY') }}"
+      AWS_REGION: "{{ kv('AWS_REGION') }}"
+    commands:
+      # - "echo $AWS_ACCESS_KEY_ID $AWS_SECRET_ACCESS_KEY $AWS_REGION"
+      - "/usr/bin/mc alias set myminio http://minio:9000 $AWS_ACCESS_KEY_ID $AWS_SECRET_ACCESS_KEY"
+      - "/usr/bin/mc ls myminio"

@@ -2,6 +2,8 @@
 services:
   kestra:
     image: kestra/kestra:latest
+    networks:
+      internal:
     container_name: myflow
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
@@ -26,7 +28,68 @@ services:
   #     - "8000:8000"
   #     - "9443:9443"
   #   # restart: always
+  minio:
+    image: minio/minio
+    # container_name: minio
+    environment:
+      - MINIO_ROOT_USER=admin
+      - MINIO_ROOT_PASSWORD=password
+      - MINIO_DOMAIN=minio
+    networks:
+      internal:
+        aliases:
+          - warehouse.minio
+    ports:
+      - 9001:9001
+      - 9000:9000
+    command: ["server", "/data", "--console-address", ":9001"]
+
+  rest:
+    image: apache/iceberg-rest-fixture
+    # container_name: iceberg-rest
+    networks:
+      internal:
+    ports:
+      - 8181:8181
+    environment:
+      - AWS_ACCESS_KEY_ID=admin
+      - AWS_SECRET_ACCESS_KEY=password
+      - AWS_REGION=us-east-1
+      - CATALOG_WAREHOUSE=s3://warehouse/
+      - CATALOG_IO__IMPL=org.apache.iceberg.aws.s3.S3FileIO
+      - CATALOG_S3_ENDPOINT=http://minio:9000
+
+  spark-iceberg:
+    image: tabulario/spark-iceberg
+    # container_name: spark-iceberg
+    build: spark/
+    networks:
+      internal:
+    depends_on:
+      - rest
+      - minio
+    # volumes:
+    #   - .volume/warehouse:/home/iceberg/warehouse
+    #   - .volume/notebooks:/home/iceberg/notebooks/notebooks
+    environment:
+      - AWS_ACCESS_KEY_ID=admin
+      - AWS_SECRET_ACCESS_KEY=password
+      - AWS_REGION=us-east-1
+      # - ICEBERG_CATALOG_REST=rest:8181  # 追加してみたが動くのか分からない
+    ports:
+      - 9999:8888
+      - 8980:8080
+      - 10000:10000
+      - 10001:10001
+  # spark を起動するには
+  # /opt/spark/bin/spark-shell
+  # spark.conf.getAll.foreach(println)  # 構成を確認する
+  # cat ./conf/spark-defaults.conf
+
   unitycatalog:
+    # 現状 s3 には接続できないみたいだ
+    networks:
+        internal:
     build:
       context: .
       dockerfile: ./dockerfiles/UnityCatalog.Dockerfile
@@ -37,4 +100,11 @@ services:
       JAVA_HOME: /usr/local/openjdk-17
     # command: ["bin/start-uc-server"]
   # unitycatalog-ui:
-  
+
+networks:
+  internal:
+    name: internal
+
+
+# * ParadeDB: postgres に elasticsearch を盛り込む拡張機能
+# * pg_analytics: postgres13以降 に iceberg や deltalake の連携機能を追加する
