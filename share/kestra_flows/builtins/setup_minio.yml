@@ -15,10 +15,12 @@ tasks:
       AWS_SECRET_ACCESS_KEY: "{{ kv('AWS_SECRET_ACCESS_KEY') }}"
       AWS_REGION: "{{ kv('AWS_REGION') }}"
       S3_ALIAS: "myminio"
+      S3_BUCKET: "warehouse"
     commands:
       # - "echo $AWS_ACCESS_KEY_ID $AWS_SECRET_ACCESS_KEY $AWS_REGION"
       - "/usr/bin/mc alias set $S3_ALIAS http://minio:9000 $AWS_ACCESS_KEY_ID $AWS_SECRET_ACCESS_KEY"
       - "/usr/bin/mc ls $S3_ALIAS"
-      - "/usr/bin/mc rm -r --force $S3_ALIAS/warehouse || true"
-      - "/usr/bin/mc mb $S3_ALIAS/warehouse"  # minio
-      - "/usr/bin/mc anonymous set public $S3_ALIAS/warehouse"  # public にする
+      - "/usr/bin/mc rb --force $S3_ALIAS/$S3_BUCKET"  # バケット削除
+      - "/usr/bin/mc mb $S3_ALIAS/$S3_BUCKET"  # バケット作成
+      - "/usr/bin/mc anonymous set public $S3_ALIAS/$S3_BUCKET"  # public にする
+

@@ -44,7 +44,7 @@ services:
       - 9000:9000
     command: ["server", "/data", "--console-address", ":9001"]
 
-  rest:
+  rest-iceberg:
     image: apache/iceberg-rest-fixture
     # container_name: iceberg-rest
     networks:
@@ -66,7 +66,7 @@ services:
     networks:
       internal:
     depends_on:
-      - rest
+      - rest-iceberg
       - minio
     # volumes:
     #   - .volume/warehouse:/home/iceberg/warehouse
@@ -75,7 +75,7 @@ services:
       - AWS_ACCESS_KEY_ID=admin
       - AWS_SECRET_ACCESS_KEY=password
       - AWS_REGION=us-east-1
-      # - ICEBERG_CATALOG_REST=rest:8181  # 追加してみたが動くのか分からない
+      # - ICEBERG_CATALOG_REST=rest-iceberg:8181  # 追加してみたが動くのか分からない
     ports:
       - 9999:8888
       - 8980:8080
