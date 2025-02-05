@@ -9,7 +9,8 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - ".configs/kestra.yaml:/etc/config/application.yaml"
       - ".volume/kestra:/tmp"
-      - "./share:/mnt/share"
+      - "./share:/mnt/share/builtins"
+      - "/mnt/share:/mnt/share/host"
     ports:
       - 8080:8080
     user: root:root
@@ -17,7 +18,7 @@ services:
       - server
       - local  # 開発用　データベースなどが内包されている
       - "--flow-path"
-      - "/mnt/share/kestra_flows"
+      - "/mnt/share/builtins/kestra_flows"
   # portainer:
   #   image: portainer/portainer-ce:2.21.5
   #   container_name: portainer

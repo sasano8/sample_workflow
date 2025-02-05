@@ -1,9 +1,56 @@
+# 共有ディレクトリの設定
+
+システムでホスト側の共有ディレクトリからデータを参照できると、データの取り込みが便利なため、共有ディレクトリを作成します。
+
+共有ディレクトリのルートと共有ディレクトリグループを作成します。
+
+```
+sudo groupadd -g 980 sharedgroup
+sudo mkdir -p /mnt/share
+sudo chown :sharedgroup /mnt/share
+sudo chmod 2775 /mnt/share # 配下に作成されるファイル/ディレクトリのグループは/mnt/shareを引き継ぎます
+```
+
+共有ディレクトリを作成します。
+
+```
+sudo mkdir -p /mnt/share/local && sudo chmod g+w /mnt/share/local && sudo chown :sharedgroup /mnt/share/local && sudo chmod 2775 /mnt/share/local
+```
+
+ユーザーにグループ権限を付与します。
+
+グループは再ログインで反映されます。
+また、VSCODE のターミナル上などで再ログインをした場合、変更が反映されないことがあります。
+
+```
+sudo usermod -aG sharedgroup user1
+```
+
+読み書きができるか確認します。
+
+```
+cat << EOF > /mnt/share/local/sample.txt
+This is sample.
+EOF
+
+cat /mnt/share/local/sample.txt
+```
 
 
+# サービスの起動
+
+docker compose でサービス群を起動します。
 
 ```
 make reload
 ```
+
+# 初期セットアップ
+
+Kestra UI から以下のフローを実行します。
+
+* setup_default_kv: デフォルトの環境変数を設定する
+* setup_minio: デフォルトのオブジェクトストレージ（バケット）を構成する
 
 
 ```
