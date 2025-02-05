@@ -13,11 +13,11 @@ services:
       - "/mnt/share:/mnt/share/host"
     ports:
       - 8080:8080
-    user: root:root
+    user: root:980  # 980 -> sharedgroup
     command:
       - server
       - local  # 開発用　データベースなどが内包されている
-      - "--flow-path"
+      - "--flow-path"  # 起動時に読み込むフロー
       - "/mnt/share/builtins/kestra_flows"
   # portainer:
   #   image: portainer/portainer-ce:2.21.5
