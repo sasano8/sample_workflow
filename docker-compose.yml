@@ -102,6 +102,36 @@ services:
     # command: ["bin/start-uc-server"]
   # unitycatalog-ui:
 
+  open-webui:
+    # image: ghcr.io/open-webui/open-webui:main
+    image: ghcr.io/open-webui/open-webui:cuda
+    runtime: nvidia
+    environment:
+      WEBUI_AUTH: false
+      ENABLE_OLLAMA_API: true
+      # ENABLE_SIGNUP: false
+      # ENABLE_LOGIN_FORM: false
+      USE_OLLAMA_DOCKER: false
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
+      # USE_OLLAMA_DOCKER: true
+      # OLLAMA_BASE_URL: http://localhost:11434
+      HF_HUB_OFFLINE: 0
+      USE_CUDA_DOCKER: true
+    ports:
+      - "3090:8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ".volume/open-webui:/app/backend/data"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+
 networks:
   internal:
     name: internal
