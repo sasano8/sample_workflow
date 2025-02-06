@@ -102,6 +102,12 @@ services:
     # command: ["bin/start-uc-server"]
   # unitycatalog-ui:
 
+  # https://projectnessie.org/guides/spark-s3/#setting-up-spark-session-for-minio
+  nessie:
+    image: ghcr.io/projectnessie/nessie
+    ports:
+      - "19120:19120"
+
   open-webui:
     # image: ghcr.io/open-webui/open-webui:main
     image: ghcr.io/open-webui/open-webui:cuda
