@@ -2,6 +2,13 @@ id: setup_default_kv
 namespace: tutorial.builtin
 
 tasks:
+  - id: PUT_AWS_S3_LOCATION
+    type: io.kestra.plugin.core.http.Request
+    uri: http://localhost:8080/api/v1/namespaces/tutorial.builtin/kv/AWS_S3_LOCATION
+    method: PUT
+    contentType: application/json
+    body: '"http://minio:9000"'
+
   - id: PUT_AWS_ACCESS_KEY_ID
     type: io.kestra.plugin.core.http.Request
     uri: http://localhost:8080/api/v1/namespaces/tutorial.builtin/kv/AWS_ACCESS_KEY_ID
@@ -29,6 +36,20 @@ tasks:
     method: PUT
     contentType: application/json
     body: '"warehouse"'
+
+  - id: PUT_ICEBERG_URL
+    type: io.kestra.plugin.core.http.Request
+    uri: http://localhost:8080/api/v1/namespaces/tutorial.builtin/kv/ICEBERG_URL
+    method: PUT
+    contentType: application/json
+    body: '"http://nessie:19120/iceberg/main/"'
+
+  - id: PUT_ICEBERG_REF
+    type: io.kestra.plugin.core.http.Request
+    uri: http://localhost:8080/api/v1/namespaces/tutorial.builtin/kv/ICEBERG_REF
+    method: PUT
+    contentType: application/json
+    body: '"main"'
 
   - id: echo
     type: io.kestra.plugin.core.log.Log

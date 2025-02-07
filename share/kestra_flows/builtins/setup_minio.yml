@@ -12,13 +12,14 @@ tasks:
       networkMode: "internal"
     env:
       S3_ALIAS: "myminio"
+      AWS_S3_LOCATION: "{{ kv('AWS_S3_LOCATION') }}"
       AWS_ACCESS_KEY_ID: "{{ kv('AWS_ACCESS_KEY_ID') }}"
       AWS_SECRET_ACCESS_KEY: "{{ kv('AWS_SECRET_ACCESS_KEY') }}"
       AWS_REGION: "{{ kv('AWS_REGION') }}"
       AWS_BUCKET: "{{ kv('AWS_BUCKET') }}"
     commands:
-      # - "echo $AWS_ACCESS_KEY_ID $AWS_SECRET_ACCESS_KEY $AWS_REGION"
-      - "/usr/bin/mc alias set $S3_ALIAS http://minio:9000 $AWS_ACCESS_KEY_ID $AWS_SECRET_ACCESS_KEY"
+      # - "echo $AWS_S3_LOCATION $AWS_ACCESS_KEY_ID $AWS_SECRET_ACCESS_KEY $AWS_REGION"
+      - "/usr/bin/mc alias set $S3_ALIAS $AWS_S3_LOCATION $AWS_ACCESS_KEY_ID $AWS_SECRET_ACCESS_KEY"
       - "/usr/bin/mc ls $S3_ALIAS"
       - "/usr/bin/mc rb --force $S3_ALIAS/$AWS_BUCKET"  # バケット削除
       - "/usr/bin/mc mb $S3_ALIAS/$AWS_BUCKET"  # バケット作成
@@ -34,11 +35,13 @@ tasks:
       AWS_ACCESS_KEY_ID: "{{ kv('AWS_ACCESS_KEY_ID') }}"
       AWS_SECRET_ACCESS_KEY: "{{ kv('AWS_SECRET_ACCESS_KEY') }}"
       AWS_REGION: "{{ kv('AWS_REGION') }}"
+      ICEBERG_URL: "{{ kv('ICEBERG_URL') }}"
+      ICEBERG_REF: "{{ kv('ICEBERG_REF') }}"
       # AWS_BUCKET: "warehouse"
     beforeCommands:
       # - apt-get update && apt-get install -y curl
       # - curl http://rest-iceberg:8181
-      # - curl http://minio:9000
+      # - curl $AWS_S3_LOCATION
       - echo $AWS_ACCESS_KEY_ID $AWS_SECRET_ACCESS_KEY $AWS_REGION $AWS_BUCKET
       - pip install pyiceberg[s3fs] pyarrow pandas
       # - sleep 1000
@@ -52,6 +55,8 @@ tasks:
       AWS_SECRET_ACCESS_KEY = environ.get("AWS_SECRET_ACCESS_KEY")
       AWS_REGION = environ.get("AWS_REGION")
       # AWS_BUCKET = environ.get("AWS_BUCKET")
+      ICEBERG_URL = environ.get("ICEBERG_URL")
+      ICEBERG_REF = environ.get("ICEBERG_REF")
 
       # 構成例１
       # rest + S3 : rest にカタログメタデータと S3のバケットに１つのカタログ（テーブル群）を管理する。S3 だけを削除したりすると、rest 側のゴミと不一致になりバグが生じる
@@ -64,8 +69,8 @@ tasks:
 
       catalog_name = "tutorial"
       conf_catalog = {
-        "uri": "http://nessie:19120/iceberg/main/",
-        "ref": "main"
+        "uri": ICEBERG_URL,
+        "ref": ICEBERG_REF
       }
 
       # conf_catalog = {
