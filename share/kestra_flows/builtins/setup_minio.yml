@@ -11,18 +11,18 @@ tasks:
         - ""
       networkMode: "internal"
     env:
+      S3_ALIAS: "myminio"
       AWS_ACCESS_KEY_ID: "{{ kv('AWS_ACCESS_KEY_ID') }}"
       AWS_SECRET_ACCESS_KEY: "{{ kv('AWS_SECRET_ACCESS_KEY') }}"
       AWS_REGION: "{{ kv('AWS_REGION') }}"
-      S3_ALIAS: "myminio"
-      S3_BUCKET: "warehouse"
+      AWS_BUCKET: "{{ kv('AWS_BUCKET') }}"
     commands:
       # - "echo $AWS_ACCESS_KEY_ID $AWS_SECRET_ACCESS_KEY $AWS_REGION"
       - "/usr/bin/mc alias set $S3_ALIAS http://minio:9000 $AWS_ACCESS_KEY_ID $AWS_SECRET_ACCESS_KEY"
       - "/usr/bin/mc ls $S3_ALIAS"
-      - "/usr/bin/mc rb --force $S3_ALIAS/$S3_BUCKET"  # バケット削除
-      - "/usr/bin/mc mb $S3_ALIAS/$S3_BUCKET"  # バケット作成
-      - "/usr/bin/mc anonymous set public $S3_ALIAS/$S3_BUCKET"  # public にする
+      - "/usr/bin/mc rb --force $S3_ALIAS/$AWS_BUCKET"  # バケット削除
+      - "/usr/bin/mc mb $S3_ALIAS/$AWS_BUCKET"  # バケット作成
+      - "/usr/bin/mc anonymous set public $S3_ALIAS/$AWS_BUCKET"  # public にする
 
   # TODO: warehouse を指定していないのに、なぜ s3://warehouse にリクエストがいくのか？
   - id: custom_image
@@ -34,12 +34,12 @@ tasks:
       AWS_ACCESS_KEY_ID: "{{ kv('AWS_ACCESS_KEY_ID') }}"
       AWS_SECRET_ACCESS_KEY: "{{ kv('AWS_SECRET_ACCESS_KEY') }}"
       AWS_REGION: "{{ kv('AWS_REGION') }}"
-      # S3_BUCKET: "warehouse"
+      # AWS_BUCKET: "warehouse"
     beforeCommands:
       # - apt-get update && apt-get install -y curl
       # - curl http://rest-iceberg:8181
       # - curl http://minio:9000
-      - echo $AWS_ACCESS_KEY_ID $AWS_SECRET_ACCESS_KEY $AWS_REGION $S3_BUCKET
+      - echo $AWS_ACCESS_KEY_ID $AWS_SECRET_ACCESS_KEY $AWS_REGION $AWS_BUCKET
       - pip install pyiceberg[s3fs] pyarrow pandas
       # - sleep 1000
     script: |
@@ -51,7 +51,7 @@ tasks:
       AWS_ACCESS_KEY_ID = environ.get("AWS_ACCESS_KEY_ID")
       AWS_SECRET_ACCESS_KEY = environ.get("AWS_SECRET_ACCESS_KEY")
       AWS_REGION = environ.get("AWS_REGION")
-      # S3_BUCKET = environ.get("S3_BUCKET")
+      # AWS_BUCKET = environ.get("AWS_BUCKET")
 
       # 構成例１
       # rest + S3 : rest にカタログメタデータと S3のバケットに１つのカタログ（テーブル群）を管理する。S3 だけを削除したりすると、rest 側のゴミと不一致になりバグが生じる
@@ -62,29 +62,37 @@ tasks:
       # S3FS で S3 をローカルファイルシステムにマウントしておくことでS3と同期が図れるものの、排他処理が効かず、チームで作業した場合は環境が壊れてしまう
       # 一人で使う場合には構成が簡素で使い勝手がよい
 
+      catalog_name = "tutorial"
       conf_catalog = {
-          "uri": "http://rest-iceberg:8181",
-          "py-io-impl": "pyiceberg.io.pyarrow.PyArrowFileIO",
-          "s3.endpoint": "http://minio:9000",
-          "s3.access-key-id": environ.get("AWS_ACCESS_KEY_ID"),
-          "s3.secret-access-key": environ.get("AWS_SECRET_ACCESS_KEY"),
-          "s3.region": environ.get("AWS_REGION")
+        "uri": "http://nessie:19120/iceberg/main/",
+        "ref": "main"
       }
 
+      # conf_catalog = {
+      #     "uri": "http://rest-iceberg:8181",
+      #     "py-io-impl": "pyiceberg.io.pyarrow.PyArrowFileIO",
+      #     "s3.endpoint": "http://minio:9000",
+      #     "s3.access-key-id": environ.get("AWS_ACCESS_KEY_ID"),
+      #     "s3.secret-access-key": environ.get("AWS_SECRET_ACCESS_KEY"),
+      #     "s3.region": environ.get("AWS_REGION")
+      # }
+
       catalog = load_catalog(
-          "tutorial",
+          catalog_name,
           **conf_catalog
       )
 
       catalog.create_namespace_if_not_exists("default")
 
       TABLE_NAME = "default.taxi_dataset"
-      pa_table = pa.Table.from_pandas(pd.DataFrame({
-          "id": [1, 2, 3],
-          "name": ["Alice", "Bob", "Charlie"],
-          "age": [25, 30, 28],
-          "salary": [50000.0, 60000.0, 55000.0]
-      }))
+
+      # pa.Table.from_pandas: pandas を使う場合
+      pa_table = pa.Table.from_pydict({
+        "id": [1, 2, 3],
+        "name": ["Alice", "Bob", "Charlie"],
+        "age": [25, 30, 28],
+        "salary": [50000.0, 60000.0, 55000.0]
+      })
 
       if not catalog.table_exists(TABLE_NAME):
         with catalog.create_table_transaction(

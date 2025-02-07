@@ -21,6 +21,22 @@ services:
     image: ghcr.io/projectnessie/nessie
     ports:
       - "19120:19120"
+      - "19110:9000"  # なんかUIが有効になるみたいだが映らない
+    environment:
+      # https://www.dremio.com/blog/intro-to-pyiceberg/
+      - nessie.server.authentication.enabled=false
+      - nessie.catalog.default-warehouse=warehouse
+      - nessie.catalog.warehouses.warehouse.location=s3://warehouse/
+      - nessie.catalog.service.s3.default-options.endpoint=http://minio:9000/
+      - nessie.catalog.service.s3.default-options.access-key=urn:nessie-secret:quarkus:nessie.catalog.secrets.access-key
+      - nessie.catalog.service.s3.default-options.path-style-access=true
+      - nessie.server.default-branch=main
+      - nessie.version.store.type=IN_MEMORY
+      - nessie.catalog.secrets.access-key.name=admin
+      - nessie.catalog.secrets.access-key.secret=password
+      - nessie.catalog.service.s3.default-options.region=us-east-1
+    networks:
+      internal:
 
   kestra:
     image: kestra/kestra:latest
