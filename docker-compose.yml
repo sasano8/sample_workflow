@@ -1,5 +1,27 @@
 ---
 services:
+  minio:
+    image: minio/minio
+    # container_name: minio
+    environment:
+      - MINIO_ROOT_USER=admin
+      - MINIO_ROOT_PASSWORD=password
+      - MINIO_DOMAIN=minio
+    networks:
+      internal:
+        aliases:
+          - warehouse.minio
+    ports:
+      - 9001:9001
+      - 9000:9000
+    command: ["server", "/data", "--console-address", ":9001"]
+
+  # https://projectnessie.org/guides/spark-s3/#setting-up-spark-session-for-minio
+  nessie:
+    image: ghcr.io/projectnessie/nessie
+    ports:
+      - "19120:19120"
+
   kestra:
     image: kestra/kestra:latest
     networks:
@@ -19,31 +41,7 @@ services:
       - local  # 開発用　データベースなどが内包されている
       - "--flow-path"  # 起動時に読み込むフロー
       - "/mnt/share/builtins/kestra_flows"
-  # portainer:
-  #   image: portainer/portainer-ce:2.21.5
-  #   container_name: portainer
-  #   volumes:
-  #     - "/var/run/docker.sock:/var/run/docker.sock"
-  #     - ".volume/portainer_data:/data"
-  #   ports:
-  #     - "8000:8000"
-  #     - "9443:9443"
-  #   # restart: always
-  minio:
-    image: minio/minio
-    # container_name: minio
-    environment:
-      - MINIO_ROOT_USER=admin
-      - MINIO_ROOT_PASSWORD=password
-      - MINIO_DOMAIN=minio
-    networks:
-      internal:
-        aliases:
-          - warehouse.minio
-    ports:
-      - 9001:9001
-      - 9000:9000
-    command: ["server", "/data", "--console-address", ":9001"]
+
 
   rest-iceberg:
     image: apache/iceberg-rest-fixture
@@ -102,11 +100,6 @@ services:
     # command: ["bin/start-uc-server"]
   # unitycatalog-ui:
 
-  # https://projectnessie.org/guides/spark-s3/#setting-up-spark-session-for-minio
-  nessie:
-    image: ghcr.io/projectnessie/nessie
-    ports:
-      - "19120:19120"
 
   open-webui:
     # image: ghcr.io/open-webui/open-webui:main
@@ -137,6 +130,17 @@ services:
               count: 1
               capabilities: [gpu]
 
+
+  # portainer:
+  #   image: portainer/portainer-ce:2.21.5
+  #   container_name: portainer
+  #   volumes:
+  #     - "/var/run/docker.sock:/var/run/docker.sock"
+  #     - ".volume/portainer_data:/data"
+  #   ports:
+  #     - "8000:8000"
+  #     - "9443:9443"
+  #   # restart: always
 
 networks:
   internal:
