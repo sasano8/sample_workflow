@@ -1,5 +1,5 @@
 id: setup_minio
-namespace: tutorial.builtin
+namespace: builtins
 
 tasks:
   - id: cleanup_default_bucket

@@ -1,5 +1,5 @@
 id: tutorial_python_run
-namespace: tutorial.builtin
+namespace: builtins.tutorial
 
 tasks:
   - id: custom_image

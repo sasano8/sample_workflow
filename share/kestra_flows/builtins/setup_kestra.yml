@@ -1,52 +1,52 @@
 id: setup_default_kv
-namespace: tutorial.builtin
+namespace: builtins
 
 tasks:
   - id: PUT_AWS_S3_LOCATION
     type: io.kestra.plugin.core.http.Request
-    uri: http://localhost:8080/api/v1/namespaces/tutorial.builtin/kv/AWS_S3_LOCATION
+    uri: http://localhost:8080/api/v1/namespaces/builtins/kv/AWS_S3_LOCATION
     method: PUT
     contentType: application/json
     body: '"http://minio:9000"'
 
   - id: PUT_AWS_ACCESS_KEY_ID
     type: io.kestra.plugin.core.http.Request
-    uri: http://localhost:8080/api/v1/namespaces/tutorial.builtin/kv/AWS_ACCESS_KEY_ID
+    uri: http://localhost:8080/api/v1/namespaces/builtins/kv/AWS_ACCESS_KEY_ID
     method: PUT
     contentType: application/json
     body: '"admin"'
 
   - id: PUT_AWS_SECRET_ACCESS_KEY
     type: io.kestra.plugin.core.http.Request
-    uri: http://localhost:8080/api/v1/namespaces/tutorial.builtin/kv/AWS_SECRET_ACCESS_KEY
+    uri: http://localhost:8080/api/v1/namespaces/builtins/kv/AWS_SECRET_ACCESS_KEY
     method: PUT
     contentType: application/json
     body: '"password"'
   
   - id: PUT_AWS_REGION
     type: io.kestra.plugin.core.http.Request
-    uri: http://localhost:8080/api/v1/namespaces/tutorial.builtin/kv/AWS_REGION
+    uri: http://localhost:8080/api/v1/namespaces/builtins/kv/AWS_REGION
     method: PUT
     contentType: application/json
     body: '"us-east-1"'
 
   - id: PUT_AWS_BUCKET
     type: io.kestra.plugin.core.http.Request
-    uri: http://localhost:8080/api/v1/namespaces/tutorial.builtin/kv/AWS_BUCKET
+    uri: http://localhost:8080/api/v1/namespaces/builtins/kv/AWS_BUCKET
     method: PUT
     contentType: application/json
     body: '"warehouse"'
 
   - id: PUT_ICEBERG_URL
     type: io.kestra.plugin.core.http.Request
-    uri: http://localhost:8080/api/v1/namespaces/tutorial.builtin/kv/ICEBERG_URL
+    uri: http://localhost:8080/api/v1/namespaces/builtins/kv/ICEBERG_URL
     method: PUT
     contentType: application/json
     body: '"http://nessie:19120/iceberg/main/"'
 
   - id: PUT_ICEBERG_REF
     type: io.kestra.plugin.core.http.Request
-    uri: http://localhost:8080/api/v1/namespaces/tutorial.builtin/kv/ICEBERG_REF
+    uri: http://localhost:8080/api/v1/namespaces/builtins/kv/ICEBERG_REF
     method: PUT
     contentType: application/json
     body: '"main"'

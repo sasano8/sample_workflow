@@ -1,5 +1,5 @@
 id: tutorial_receive_inputs
-namespace: tutorial.builtin
+namespace: builtins.tutorial
 
 inputs:
   - id: user

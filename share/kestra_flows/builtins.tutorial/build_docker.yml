@@ -1,5 +1,5 @@
 id: tutorial_docker_build
-namespace: tutorial.builtin
+namespace: builtins.tutorial
 
 tasks:
   - id: docker_build
