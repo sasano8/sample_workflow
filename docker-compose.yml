@@ -146,6 +146,17 @@ services:
               count: 1
               capabilities: [gpu]
 
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.0.1
+    expose:
+      - "5000"
+    ports:
+      - "5000:5000"
+    # トラッキングサーバ： トラッキングの制御と結果のUI表示
+    # バックエンド： Parameters, Metrics の管理
+    # Artifact： 非構造データの管理
+    # レジストリサーバ： モデルとバージョン情報を管理
+    command: "mlflow server --host 0.0.0.0"
 
   # portainer:
   #   image: portainer/portainer-ce:2.21.5
