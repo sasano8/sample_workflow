@@ -28,21 +28,28 @@ tasks:
       def log(msg):
           print(msg)
 
-      def run_train(epochs: int = 1):
+      def run_train(epochs: int = 1, as_test: bool = False):
           # 1. CIFAR10のトレーニングデータセットとテストデータセットをロードして正規化する。 torchvision
           import torch
           import torchvision
           import torchvision.transforms as transforms
+          from torch.utils.data import Subset
 
           # torchvisionデータセットの出力は、範囲[0, 1]のPILImage画像です。これを正規化された範囲[-1, 1]のテンソルに変換します。
           transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
           batch_size = 4
           trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
-          trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=2)
           testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
-          testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=2)
           classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+
+          if as_test:
+              trainset = Subset(trainset, range(100))
+              testset = Subset(testset, range(20))
+
+          trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=2)
+          testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=2)
+
 
           import torch.nn as nn
           import torch.nn.functional as F
@@ -90,7 +97,7 @@ tasks:
           mlflow.set_tracking_uri(environ["MLFLOW_TRACKING_URI"])
           mlflow.set_experiment("pytorch_experiment")
 
-          with mlflow.start_run():
+          with mlflow.start_run() as run:
               mlflow.log_param("optimizer", p_optim)
               mlflow.log_param("learning_rate", p_lr)
               mlflow.log_param("momentum", p_momentum)
@@ -129,7 +136,22 @@ tasks:
                   example_output = model(example_input)
                   signature = infer_signature(example_input.to("cpu").numpy(), example_output.to("cpu").numpy())
 
-          mlflow.pytorch.log_model(model, "model", signature=signature)
+              # registered_model_name を与えるとモデルレジストリに登録される
+              # 実験が進んだ段階で名前を与える
+              log(mlflow.get_artifact_uri())
+              registered_model_name = "your_model"
+              artifact_path = "model"  # アーティファクトとしてアップロードされるルートディレクトリ名
+              mlflow.pytorch.log_model(model, artifact_path=artifact_path, signature=signature, registered_model_name=registered_model_name)
+              if registered_model_name:
+                  client = mlflow.MlflowClient()
+                  versions = client.get_latest_versions(registered_model_name, stages=["Staging"])
+                  if versions:
+                      info = versions[0]
+                      # alias に . は使えない
+                      # エラーになる endpoint /api/2.0/mlflow/registered-models/alias failed with error code 404 != 200.
+                      # client.set_registered_model_alias(registered_model_name, "test", version=info.version)
+              
+              print(run)
 
           # 保存した PyTorch モデルを読み込む（RUN_ID は UI から確認）
           # model_path = "runs:/<RUN_ID>/model"
@@ -152,4 +174,4 @@ tasks:
 
       if __name__ == "__main__":
           # environ["MLFLOW_TRACKING_URI"] = "http://localhost:5000"
-          run_train(epochs=1)
+          run_train(epochs=1, as_test=True)
