@@ -1,0 +1,155 @@
+id: train_cifer10
+namespace: builtins.experimental
+
+tasks:
+  - id: custom_image
+    type: io.kestra.plugin.scripts.python.Script
+    docker:
+      image: pytorch/pytorch:2.6.0-cuda11.8-cudnn9-devel
+      networkMode: "internal"
+      # エンタープライズ版でないと GPU は利用できない。
+      # シェルベースで無理やり実行すればいけるはず。
+    env:
+      MLFLOW_TRACKING_URI: "http://mlflow:5000"
+    beforeCommands:
+      - nvidia-smi
+      - pip3 mlflow
+      - pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+    script: |
+      from os import environ
+      import mlflow
+      import numpy as np
+      from mlflow.models.signature import infer_signature
+
+      # CIFAR10 データセットを使った学習サンプル。
+      # このデータセット には、「飛行機」、「自動車」、「鳥」、「猫」、「鹿」、「犬」、「カエル」、「馬」、「船」、「トラック」のクラスがあります。
+      # 32x32 ピクセルの 3 チャンネル カラー画像です。
+
+      def log(msg):
+          print(msg)
+
+      def run_train(epochs: int = 1):
+          # 1. CIFAR10のトレーニングデータセットとテストデータセットをロードして正規化する。 torchvision
+          import torch
+          import torchvision
+          import torchvision.transforms as transforms
+
+          # torchvisionデータセットの出力は、範囲[0, 1]のPILImage画像です。これを正規化された範囲[-1, 1]のテンソルに変換します。
+          transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+
+          batch_size = 4
+          trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
+          trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=2)
+          testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
+          testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=2)
+          classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+
+          import torch.nn as nn
+          import torch.nn.functional as F
+
+          # 2. 畳み込みニューラルネットワークを定義する
+          class Net(nn.Module):
+              def __init__(self):
+                  super().__init__()
+                  self.conv1 = nn.Conv2d(3, 6, 5)
+                  self.pool = nn.MaxPool2d(2, 2)
+                  self.conv2 = nn.Conv2d(6, 16, 5)
+                  self.fc1 = nn.Linear(16 * 5 * 5, 120)
+                  self.fc2 = nn.Linear(120, 84)
+                  self.fc3 = nn.Linear(84, 10)
+
+              def forward(self, x):
+                  x = self.pool(F.relu(self.conv1(x)))
+                  x = self.pool(F.relu(self.conv2(x)))
+                  x = torch.flatten(x, 1) # flatten all dimensions except batch
+                  x = F.relu(self.fc1(x))
+                  x = F.relu(self.fc2(x))
+                  x = self.fc3(x)
+                  return x
+
+          model = Net()
+
+          # デバイスの判定
+          device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+          log(f"device: {device}")
+          model.to(device)
+
+          # 3. 損失関数を定義する
+          # 分類クロスエントロピー損失とモメンタム付き SGD を使用しましょう。
+          import torch.optim as optim
+
+          p_optim = "SGD"
+          p_lr = 0.001
+          p_momentum = 0.9
+
+          criterion = nn.CrossEntropyLoss()
+          optimizer = optim.SGD(model.parameters(), lr=p_lr, momentum=p_momentum)
+
+
+          # 実験管理
+          mlflow.set_tracking_uri(environ["MLFLOW_TRACKING_URI"])
+          mlflow.set_experiment("pytorch_experiment")
+
+          with mlflow.start_run():
+              mlflow.log_param("optimizer", p_optim)
+              mlflow.log_param("learning_rate", p_lr)
+              mlflow.log_param("momentum", p_momentum)
+
+              # 4. トレーニングデータでネットワークをトレーニングする
+              for epoch in range(epochs):  # loop over the dataset multiple times
+                  running_loss = 0.0
+                  for i, data in enumerate(trainloader, 0):
+                      # get the inputs; data is a list of [inputs, labels]
+                      inputs, labels = data
+                      inputs = inputs.to(device)
+                      labels = labels.to(device)
+
+                      # zero the parameter gradients
+                      optimizer.zero_grad()
+
+                      # forward + backward + optimize
+                      outputs = model(inputs)
+                      loss = criterion(outputs, labels)
+                      loss.backward()
+                      optimizer.step()
+
+                      # print statistics
+                      running_loss += loss.item()
+                      if i % 2000 == 1999:    # print every 2000 mini-batches
+                          avg_loss = running_loss / 2000
+                          log(f'[{epoch + 1}, {i + 1:5d}] loss: {avg_loss:.3f}')
+                          mlflow.log_metric("loss", avg_loss, step=epoch * len(trainloader) + i)
+                          running_loss = 0.0
+
+          log('Finished Training')
+
+          model.eval()  # 推論モードにする
+          with torch.no_grad():
+              example_input  = inputs
+              example_output = model(example_input)
+              signature = infer_signature(example_input.to("cpu").numpy(), example_output.to("cpu").numpy())
+
+          mlflow.pytorch.log_model(model, "model", signature=signature)
+
+          # 保存した PyTorch モデルを読み込む（RUN_ID は UI から確認）
+          # model_path = "runs:/<RUN_ID>/model"
+          # model = mlflow.pytorch.load_model(model_path)
+
+          # PATH = './cifar_net.pth'
+          # torch.save(model.state_dict(), PATH)
+
+          # 5. テストデータでネットワークをテストする
+          # dataiter = iter(testloader)
+          # images, labels = next(dataiter)
+
+          # print images
+          # imshow(torchvision.utils.make_grid(images))
+          # log('GroundTruth: ', ' '.join(f'{classes[labels[j]]:5s}' for j in range(4)))
+
+          # とりあえずここまで。続きは web で
+          # https://pytorch.org/tutorials/beginner/blitz/cifar10_tutorial.html
+
+
+      if __name__ == "__main__":
+          # environ["MLFLOW_TRACKING_URI"] = "http://localhost:5000"
+          run_train(epochs=1)
