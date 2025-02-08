@@ -66,6 +66,10 @@ bin/uc table list --catalog unity --schema default
 - [ ] : UnityCatalog を学ぶ
 - [ ] : DuckDB で分析する
 - [ ] : spark を学ぶ
+- [ ] : データの管理方法を学ぶ
+  - [ ] : 動画（webdataset, deeplake, zarr, Petastorm, LMDB）
+    - [ ] : ざっくりとした感触だと webdataset がよさそう。CVAT・Supervisely などのアノテーションツールとも連携可能。
+    - [ ] : Huggingface datasets でも webdataset の連携ができるっぽい
 
 
 # kestra 環境のセットアップ
@@ -115,3 +119,21 @@ bin/uc table list --catalog unity --schema default
     --conf spark.sql.catalog.s3.hadoop.fs.s3a.secret.key=your-secret-key \
     --conf spark.sql.defaultCatalog=s3
 ```
+
+
+## 動画データセット
+
+WebDataset は次のような構造を持つ。
+
+```
+dataset.tar
+├── video_0001.mp4
+├── video_0001.json
+├── frame_0001_0000.jpg
+├── frame_0001_0000.json
+├── frame_0001_0001.jpg
+├── frame_0001_0001.json
+```
+
+
+# YouTube-BoundingBoxes Dataset

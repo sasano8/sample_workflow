@@ -1,0 +1,29 @@
+id: download_webdataset
+namespace: builtins.experimental
+
+tasks:
+  - id: custom_image
+    type: io.kestra.plugin.scripts.python.Script
+    docker:
+      image: docker.io/python:3.10.16-slim
+      networkMode: "internal"
+    # env:
+    beforeCommands:
+
+      - pip install datasets webdataset
+      # - sleep 1000
+    script: |
+      # ブレース展開
+      # echo https://huggingface.co/datasets/timm/imagenet-12k-wds/resolve/main/imagenet12k-train-{0000..1023}.tar | tr ' ' '\n'
+
+      import webdataset as wds
+      from huggingface_hub import get_token
+      from torch.utils.data import DataLoader
+
+      hf_token = get_token()
+      url = "https://huggingface.co/datasets/timm/imagenet-12k-wds/resolve/main/imagenet12k-train-{{0000..1023}}.tar"
+      url = f"pipe:curl -s -L {url} -H 'Authorization:Bearer {hf_token}'"
+      dataset = wds.WebDataset(url).decode()
+      dataloader = DataLoader(dataset, batch_size=64, num_workers=4)
+      
+
