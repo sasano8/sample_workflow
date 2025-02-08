@@ -121,13 +121,13 @@ tasks:
                           mlflow.log_metric("loss", avg_loss, step=epoch * len(trainloader) + i)
                           running_loss = 0.0
 
-          log('Finished Training')
+              log('Finished Training')
 
-          model.eval()  # 推論モードにする
-          with torch.no_grad():
-              example_input  = inputs
-              example_output = model(example_input)
-              signature = infer_signature(example_input.to("cpu").numpy(), example_output.to("cpu").numpy())
+              model.eval()  # 推論モードにする
+              with torch.no_grad():
+                  example_input  = inputs
+                  example_output = model(example_input)
+                  signature = infer_signature(example_input.to("cpu").numpy(), example_output.to("cpu").numpy())
 
           mlflow.pytorch.log_model(model, "model", signature=signature)
 
