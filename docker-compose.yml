@@ -147,16 +147,28 @@ services:
               capabilities: [gpu]
 
   mlflow:
-    image: ghcr.io/mlflow/mlflow:v2.0.1
+    networks:
+      internal:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/mlflow.Dockerfile
     expose:
       - "5000"
     ports:
       - "5000:5000"
+    environment:
+      MLFLOW_BACKEND_STORE_URI: "sqlite:///mlrunsdb.db"  # Parameters, Metrics の管理
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000  # 非構造データの管理
+      MLFLOW_ARTIFACT_ROOT: "s3://mlflow/"
+      AWS_ACCESS_KEY_ID: "admin"
+      AWS_SECRET_ACCESS_KEY: "password"
+      AWS_DEFAULT_REGION: "us-east-1"
+      # export MLFLOW_S3_UPLOAD_EXTRA_ARGS='{"ServerSideEncryption": "aws:kms", "SSEKMSKeyId": "1234"}'
     # トラッキングサーバ： トラッキングの制御と結果のUI表示
     # バックエンド： Parameters, Metrics の管理
     # Artifact： 非構造データの管理
     # レジストリサーバ： モデルとバージョン情報を管理
-    command: "mlflow server --host 0.0.0.0"
+    command: "mlflow server --host 0.0.0.0 --serve-artifacts --artifacts-destination 's3://mlflow/artifacts'"
 
   # portainer:
   #   image: portainer/portainer-ce:2.21.5
