@@ -1,3 +1,15 @@
+# ollama の連携
+
+docker コンテナ上の Open-WebUI から ollama に接続するために、次の構成変更が必要です。
+
+* sudo vi /etc/systemd/system/ollama.service
+  * Environment="OLLAMA_HOST=0.0.0.0:11434"
+* sudo systemctl daemon-reload
+* sudo systemctl restart ollama
+
+連携がうまくいってる場合、ollama で管理されているモデルが Open-WebUI にも表示されます。
+
+
 # 共有ディレクトリの設定
 
 システムでホスト側の共有ディレクトリからデータを参照できると、データの取り込みが便利なため、共有ディレクトリを作成します。
@@ -62,6 +74,12 @@ bin/uc table list --catalog unity --schema default
 
 - [x] : ワークフローの構築を学ぶ
 - [x] : dbt を学ぶ
+- [x] : MLFlow を学ぶ
+  - [x] : コードベースでの実行
+- [ ] : 推論サーバー
+  - [ ] : Triton の導入
+  - [ ] : Minio から MQTT などでイベントを連携して、そのモデルを Triton にデプロイ（Kestra などで実行するのがログに残ってよいだろう）
+  - [ ] : MLFlow のイベントを購読した方がスマートだが、MLFlow自体にはイベントのpush機構はないようだ。ポーリングなどで実装もできる。rising wave で sync でもよいな。
 - [ ] : Iceberg を学ぶ
 - [ ] : UnityCatalog を学ぶ
 - [ ] : DuckDB で分析する
@@ -70,6 +88,8 @@ bin/uc table list --catalog unity --schema default
   - [ ] : 動画（webdataset, deeplake, zarr, Petastorm, LMDB）
     - [ ] : ざっくりとした感触だと webdataset がよさそう。CVAT・Supervisely などのアノテーションツールとも連携可能。
     - [ ] : Huggingface datasets でも webdataset の連携ができるっぽい
+- [ ] : 分散学習
+  - [ ] : Ray
 
 
 # kestra 環境のセットアップ
