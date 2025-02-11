@@ -1,4 +1,4 @@
-# ollama の連携
+# Open-WebUI と ollama の連携
 
 docker コンテナ上の Open-WebUI から ollama に接続するために、次の構成変更が必要です。
 

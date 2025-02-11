@@ -1,4 +1,18 @@
 ---
+version: "3.8"
+
+x-common-env: &common-env
+  MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin}
+  MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-password}
+
+# services:
+#   db:
+#     image: mysql:8.0
+#     environment:
+#       MINIO_ROOT_USER: *common-env.MINIO_ROOT_USER
+#       MINIO_ROOT_PASSWORD: *common-env.MINIO_ROOT_PASSWORD
+
+
 services:
   minio:
     image: minio/minio
@@ -57,6 +71,59 @@ services:
       - local  # 開発用　データベースなどが内包されている
       - "--flow-path"  # 起動時に読み込むフロー
       - "/mnt/share/builtins/kestra_flows"
+
+  mlflow:
+    networks:
+      internal:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/mlflow.Dockerfile
+    expose:
+      - "5000"
+    ports:
+      - "5000:5000"
+    environment:
+      MLFLOW_BACKEND_STORE_URI: "sqlite:///mlrunsdb.db"  # Parameters, Metrics の管理
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000  # 非構造データの管理
+      AWS_ACCESS_KEY_ID: "admin"
+      AWS_SECRET_ACCESS_KEY: "password"
+      AWS_DEFAULT_REGION: "us-east-1"
+      MLFLOW_ARTIFACT_ROOT: "s3://mlflow/"
+      DEST_ARTIFACT: s3://mlflow/artifacts
+      # export MLFLOW_S3_UPLOAD_EXTRA_ARGS='{"ServerSideEncryption": "aws:kms", "SSEKMSKeyId": "1234"}'
+    # トラッキングサーバ： トラッキングの制御と結果のUI表示
+    # バックエンド： Parameters, Metrics の管理
+    # Artifact： 非構造データの管理
+    # レジストリサーバ： モデルとバージョン情報を管理
+    command: 'mlflow server --host 0.0.0.0 --serve-artifacts --artifacts-destination "$DEST_ARTIFACT"'
+
+  open-webui:
+    # image: ghcr.io/open-webui/open-webui:main
+    image: ghcr.io/open-webui/open-webui:cuda
+    runtime: nvidia
+    environment:
+      WEBUI_AUTH: false
+      ENABLE_OLLAMA_API: true
+      # ENABLE_SIGNUP: false
+      # ENABLE_LOGIN_FORM: false
+      USE_OLLAMA_DOCKER: false
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
+      # USE_OLLAMA_DOCKER: true
+      HF_HUB_OFFLINE: 0
+      USE_CUDA_DOCKER: true
+    ports:
+      - "3090:8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ".volume/open-webui:/app/backend/data"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
 
 
   rest-iceberg:
@@ -117,57 +184,8 @@ services:
   # unitycatalog-ui:
 
 
-  open-webui:
-    # image: ghcr.io/open-webui/open-webui:main
-    image: ghcr.io/open-webui/open-webui:cuda
-    runtime: nvidia
-    environment:
-      WEBUI_AUTH: false
-      ENABLE_OLLAMA_API: true
-      # ENABLE_SIGNUP: false
-      # ENABLE_LOGIN_FORM: false
-      USE_OLLAMA_DOCKER: false
-      OLLAMA_BASE_URL: http://host.docker.internal:11434
-      # USE_OLLAMA_DOCKER: true
-      HF_HUB_OFFLINE: 0
-      USE_CUDA_DOCKER: true
-    ports:
-      - "3090:8080"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    volumes:
-      - ".volume/open-webui:/app/backend/data"
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
 
-  mlflow:
-    networks:
-      internal:
-    build:
-      context: .
-      dockerfile: ./dockerfiles/mlflow.Dockerfile
-    expose:
-      - "5000"
-    ports:
-      - "5000:5000"
-    environment:
-      MLFLOW_BACKEND_STORE_URI: "sqlite:///mlrunsdb.db"  # Parameters, Metrics の管理
-      MLFLOW_S3_ENDPOINT_URL: http://minio:9000  # 非構造データの管理
-      MLFLOW_ARTIFACT_ROOT: "s3://mlflow/"
-      AWS_ACCESS_KEY_ID: "admin"
-      AWS_SECRET_ACCESS_KEY: "password"
-      AWS_DEFAULT_REGION: "us-east-1"
-      # export MLFLOW_S3_UPLOAD_EXTRA_ARGS='{"ServerSideEncryption": "aws:kms", "SSEKMSKeyId": "1234"}'
-    # トラッキングサーバ： トラッキングの制御と結果のUI表示
-    # バックエンド： Parameters, Metrics の管理
-    # Artifact： 非構造データの管理
-    # レジストリサーバ： モデルとバージョン情報を管理
-    command: "mlflow server --host 0.0.0.0 --serve-artifacts --artifacts-destination 's3://mlflow/artifacts'"
+
 
   # 分散フレームワーク
   # ray:
@@ -207,6 +225,17 @@ services:
   #     - "9443:9443"
   #   # restart: always
 
+  # docker-registry:
+  #   image: registry:2
+  #   ports:
+  #     - "5000:5000"
+  #   environment:
+  #     REGISTRY_STORAGE: s3
+  #     REGISTRY_STORAGE_S3_REGION: us-east-1
+  #     REGISTRY_STORAGE_S3_BUCKET: container_registry
+  #     REGISTRY_STORAGE_S3_ACCESSKEY: hummockadmin
+  #     REGISTRY_STORAGE_S3_SECRETKEY: hummockadmin
+
 networks:
   internal:
     name: internal
@@ -215,3 +244,7 @@ networks:
 
 # * ParadeDB: postgres に elasticsearch を盛り込む拡張機能
 # * pg_analytics: postgres13以降 に iceberg や deltalake の連携機能を追加する
+
+# secrets:
+#   my_secret:
+#     file: ./.env
