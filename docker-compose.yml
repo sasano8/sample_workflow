@@ -85,7 +85,9 @@ services:
     # バックエンド： Parameters, Metrics の管理
     # Artifact： 非構造データの管理
     # レジストリサーバ： モデルとバージョン情報を管理
-    command: 'mlflow server --host 0.0.0.0 --serve-artifacts --artifacts-destination "$DEST_ARTIFACT"'
+    command: 'mlflow server --host 0.0.0.0 --serve-artifacts --artifacts-destination "s3://mlflow/artifacts"'
+    # command: ["/bin/sh", "-c", "mlflow", "server", "--host", "0.0.0.0", "--serve-artifacts", "--artifacts-destination", "$DEST_ARTIFACT"]
+    # command: ["/bin/sh", "-c", "echo $DEST_ARTIFACT"]
 
   open-webui:
     # image: ghcr.io/open-webui/open-webui:main
