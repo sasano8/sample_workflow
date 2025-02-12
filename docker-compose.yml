@@ -84,7 +84,9 @@ services:
     # バックエンド： Parameters, Metrics の管理
     # Artifact： 非構造データの管理
     # レジストリサーバ： モデルとバージョン情報を管理
-    command: 'mlflow server --host 0.0.0.0 --serve-artifacts --artifacts-destination "s3://mlflow/artifacts"'
+    # command: 'mlflow server --host 0.0.0.0 --serve-artifacts --artifacts-destination "s3://mlflow/artifacts"'
+    # command: 'python mlflow_extension.py server --host 0.0.0.0 --serve-artifacts --artifacts-destination "s3://mlflow/artifacts"'
+    command: 'mlflow server --app-name custom_app --host 0.0.0.0 --serve-artifacts --artifacts-destination "s3://mlflow/artifacts" --gunicorn-opts --log-level=debug'
     # command: ["/bin/sh", "-c", "mlflow", "server", "--host", "0.0.0.0", "--serve-artifacts", "--artifacts-destination", "$DEST_ARTIFACT"]
     # command: ["/bin/sh", "-c", "echo $DEST_ARTIFACT"]
 
@@ -135,7 +137,7 @@ services:
   spark-iceberg:
     image: tabulario/spark-iceberg
     # container_name: spark-iceberg
-    build: spark/
+    # build: spark/
     networks:
       internal:
     depends_on:
