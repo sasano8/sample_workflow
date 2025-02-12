@@ -66,8 +66,7 @@ services:
     networks:
       internal:
     build:
-      context: .
-      dockerfile: ./dockerfiles/mlflow.Dockerfile
+      context: ./containers/mlflow_extension
     expose:
       - "5000"
     ports:
@@ -165,8 +164,7 @@ services:
     networks:
         internal:
     build:
-      context: .
-      dockerfile: ./dockerfiles/UnityCatalog.Dockerfile
+      context: ./containers/unitycatalog
     ports:
       - "8888:8080"
       - "3000:3000"
@@ -175,9 +173,13 @@ services:
     # command: ["bin/start-uc-server"]
   # unitycatalog-ui:
 
-
-
-
+  myapp:
+    build:
+      context: ./containers/myapp
+    ports:
+      - "9500:8000"
+    networks:
+        internal:
 
   # 分散フレームワーク
   # ray:
