@@ -198,10 +198,12 @@ services:
   #     - ray_network
 
   triton:
-    image: nvcr.io/nvidia/tritonserver:25.01-trtllm-python-py3
+    build:
+      context: ./containers/triton
     volumes:
     - ".volume/toriton:/models"
     command: "tritonserver --model-repository=/models"
+
 # mlflow deployments create -t triton --flavor triton --name model_name -m models:/model_name/1
 # pythonを使う場合
 # from mlflow.deployments import get_deploy_client
