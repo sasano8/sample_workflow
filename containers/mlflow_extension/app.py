@@ -42,3 +42,23 @@ def after_request(response: Response):
                 f.write("\n")
 
     return response
+
+
+# やること
+# run_info の "status": "FINISHED" をフィルタする
+# model_version, registered_model も監視する
+# model_name or run_id or run_uuid に紐づくモデルを取得する
+# staging, production に応じてデプロイする。デプロイはKestra経由でロギングできるのがよい
+
+
+def deploy():
+    TRACKINGURL =""
+    DEPLOY_INFER_MODEL_STORAGE = ""
+    TRITONSERVERURL = ""
+
+    """
+    イベントが流れてきたら、
+    1. TRACKINGURL から ARTIFACT を取得する
+    2. DEPLOY_INFER_MODEL_STORAGE にモデルをアップロードする
+    3. TRITONSERVERURL でモデルのロード要求を行う
+    """
