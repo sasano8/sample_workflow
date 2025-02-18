@@ -200,9 +200,21 @@ services:
   triton:
     build:
       context: ./containers/triton
+    networks:
+        internal:
+    environment:
+      MLFLOW_TRACKING_URI: "http://mlflow:5000"
+    ports:
+      - "12000:8000"  # http
+      - "12001:8001"  # grpc
+      - "12002:8002"  # Prometheus メトリックの報告用ポート(http)
     volumes:
-    - ".volume/toriton:/models"
-    command: "tritonserver --model-repository=/models"
+    - "/mnt/share/mlops/models_triton:/models"
+    # https://github.com/triton-inference-server/server/blob/main/docs/customization_guide/deploy.md
+    command: "tritonserver --model-repository=/models --model-control-mode=explicit --strict-model-config=false --backend-config=onnxruntime,default-max-batch-size=4"
+    # command: "sleep 100000"
+    # --gpus=1
+    # model-control-mode=explicit が効いていない気がする
 
 # mlflow deployments create -t triton --flavor triton --name model_name -m models:/model_name/1
 # pythonを使う場合
@@ -232,6 +244,9 @@ services:
   #     REGISTRY_STORAGE_S3_BUCKET: container_registry
   #     REGISTRY_STORAGE_S3_ACCESSKEY: hummockadmin
   #     REGISTRY_STORAGE_S3_SECRETKEY: hummockadmin
+
+# docker コンテナのメトリクス管理
+# google/cadvisor:latest
 
 networks:
   internal:

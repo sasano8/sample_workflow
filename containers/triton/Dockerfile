@@ -1,7 +1,7 @@
-FROM nvcr.io/nvidia/tritonserver:25.01-trtllm-python-py3
+FROM nvcr.io/nvidia/tritonserver:25.01-py3
 
 # blinker は apt 経由でインストールされたパッケージで mlflow インストール時にエラーになる
-RUN apt remove -y python3-blinker && pip install mlflow
+RUN apt remove -y python3-blinker && pip install mlflow onnx onnxruntime
 
 RUN mkdir -p plugins \
     && cd plugins \
@@ -10,4 +10,4 @@ RUN mkdir -p plugins \
     && rm -rf triton-inference-server
 
 RUN cd plugins/mlflow-triton-plugin \
-    && python setup.py install
+    && python3 setup.py install

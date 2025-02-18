@@ -70,26 +70,48 @@ bin/uc table list --catalog unity --schema default
 ```
 
 
+# 推論サーバーへのデプロイ管理
+
+Triton 上で mlflow（リモート接続） を使ってデプロイすればいい？
+どこに何がデプロイされるのか理解していない。
+MLFlow Triton Plugin は上手く動作させられなかった。
+Onnx を単に置けばいいだけなので、あまり MLFlow Triton Plugin の必要性を感じなかった。
+
+```
+mlflow deployments create -t triton --flavor triton --name yolov6n -m models:/yolov6n/1
+mlflow deployments delete -t triton --name yolov6n
+mlflow deployments update -t triton --flavor triton --name yolov6n -m models:/yolov6n/2
+```
+
+
 # 目的
 
 - [x] : ワークフローの構築を学ぶ
-- [x] : dbt を学ぶ
-- [x] : MLFlow を学ぶ
-  - [x] : コードベースでの実行
-- [ ] : 推論サーバー
-  - [ ] : Triton の導入
+- [x] : データビルド
+  - [x] : dbt を学ぶ
+- [ ] : データセット管理
+  - [ ] : Iceberg を学ぶ
+  - [ ] : UnityCatalog を学ぶ
+  - [ ] : 機械学習向けデータセット
+    - [ ] : Huggingface datasets
+    - 動画データセット
+      - [ ] : webdataset（CVAT・Supervisely などの様々なアノテーションツールでサポートされていて一番有力そう。datasets とも連携できそう）
+      - [ ] : その他（deeplake, zarr, Petastorm, LMDB）
+- [ ] : 機械学習・推論
+  - [x] : MLFlow の導入
+  - [x] : MlFlow と連携した学習
+  - [x] : Triton の導入
+  - [x] : 推論モデルをデプロイ
+  - [x] : 推論結果で期待する分類結果を得る
   - [ ] : Minio から MQTT などでイベントを連携して、そのモデルを Triton にデプロイ（Kestra などで実行するのがログに残ってよいだろう）
   - [ ] : MLFlow のイベントを購読した方がスマートだが、MLFlow自体にはイベントのpush機構はないようだ。ポーリングなどで実装もできる。rising wave で sync でもよいな。
-- [ ] : Iceberg を学ぶ
-- [ ] : UnityCatalog を学ぶ
-- [ ] : DuckDB で分析する
-- [ ] : spark を学ぶ
-- [ ] : データの管理方法を学ぶ
-  - [ ] : 動画（webdataset, deeplake, zarr, Petastorm, LMDB）
-    - [ ] : ざっくりとした感触だと webdataset がよさそう。CVAT・Supervisely などのアノテーションツールとも連携可能。
-    - [ ] : Huggingface datasets でも webdataset の連携ができるっぽい
-- [ ] : 分散学習
-  - [ ] : Ray
+  - [ ] : 分散学習
+    - [ ] : Ray
+- [ ] : 分析
+  - [ ] : DuckDB で分析する
+  - [ ] : spark を学ぶ
+  - [ ] : flink などリアルタイムストリーム処理と推論を組み合わせたい
+
 
 
 # kestra 環境のセットアップ

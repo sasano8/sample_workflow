@@ -16,6 +16,10 @@ tasks:
         runner: DOCKER
         docker:
           image: python:3.11-slim
+        # こっちの書き方の方がよい
+        # containerImage: python:3.11-slim
+        # taskRunner:
+        #   type: io.kestra.plugin.scripts.runner.docker.Docker
         beforeCommands:
           - pip install uv
           - uv venv --quiet
