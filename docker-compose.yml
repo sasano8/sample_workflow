@@ -18,7 +18,7 @@ services:
     ports:
       - 9001:9001
       - 9000:9000
-    command: ["server", "/data", "--console-address", ":9001"]
+    command: ["server", "/data", "--console-address", ":9001", "--address", ":9000"]
 
   # https://projectnessie.org/guides/spark-s3/#setting-up-spark-session-for-minio
   nessie:
@@ -72,7 +72,7 @@ services:
     ports:
       - "5000:5000"
     environment:
-      MLFLOW_BACKEND_STORE_URI: "sqlite:///mlrunsdb.db"  # Parameters, Metrics の管理
+      MLFLOW_BACKEND_STORE_URI: "postgresql://admin:password@postgres:5432/dev?options=-csearch_path=mlflow_catalog"  # Parameters, Metrics の管理
       MLFLOW_S3_ENDPOINT_URL: http://minio:9000  # 非構造データの管理
       AWS_ACCESS_KEY_ID: "admin"
       AWS_SECRET_ACCESS_KEY: "password"
@@ -247,6 +247,98 @@ services:
 
 # docker コンテナのメトリクス管理
 # google/cadvisor:latest
+  postgres:
+    image: postgres:14
+    # container_name: postgres_pta
+    networks:
+      internal:
+    ports:
+      - 5432:5432
+    volumes:
+      - .volume/postgres:/var/lib/postgresql/data
+    environment:
+      TZ: "UTC"
+      POSTGRES_DB: "dev"
+      POSTGRES_USER: "admin"
+      POSTGRES_PASSWORD: "password"
+
+  risingwave:
+    image: risingwavelabs/risingwave:v2.1.0
+    command: "standalone --meta-opts=\" \
+                    --listen-addr 0.0.0.0:5690 \
+                    --advertise-addr 0.0.0.0:5690 \
+                    --dashboard-host 0.0.0.0:5691 \
+                    --prometheus-host 0.0.0.0:1250 \
+                    --prometheus-endpoint http://prometheus-0:9500 \
+                    --backend sql \
+                    --sql-endpoint sqlite:///meta-data/metadata.db?mode=rwc \
+                    --state-store hummock+minio://admin:password@minio:9000/hummock001 \
+                    --data-directory hummock_001 \
+                    --config-path /risingwave.toml\" \
+                 --compute-opts=\" \
+                    --config-path /risingwave.toml \
+                    --listen-addr 0.0.0.0:5688 \
+                    --prometheus-listener-addr 0.0.0.0:1250 \
+                    --advertise-addr 0.0.0.0:5688 \
+                    --async-stack-trace verbose \
+                    --parallelism 8 \
+                    --total-memory-bytes 21474836480 \
+                    --role both \
+                    --meta-address http://0.0.0.0:5690 \" \
+                 --frontend-opts=\" \
+                   --config-path /risingwave.toml \
+                   --listen-addr 0.0.0.0:4566 \
+                   --advertise-addr 0.0.0.0:4566 \
+                   --prometheus-listener-addr 0.0.0.0:1250 \
+                   --health-check-listener-addr 0.0.0.0:6786 \
+                   --meta-addr http://0.0.0.0:5690 \" \
+                 --compactor-opts=\" \
+                   --listen-addr 0.0.0.0:6660 \
+                   --prometheus-listener-addr 0.0.0.0:1250 \
+                   --advertise-addr 0.0.0.0:6660 \
+                   --meta-address http://0.0.0.0:5690\""
+    expose:
+      - "6660"
+      - "4566"
+      - "5688"
+      - "5690"
+      - "1250"
+      - "5691"
+    ports:
+      - "4566:4566"  # db port
+      - "5690:5690"
+      - "5691:5691"  # UI
+      - "1250:1250"  # log?
+    depends_on:
+      - minio
+    volumes:
+      - ".configs/risingwave.toml:/risingwave.toml"
+      - ".volume/meta-0:/meta-data"
+    environment:
+      RUST_BACKTRACE: "1"
+      # If ENABLE_TELEMETRY is not set, telemetry will start by default
+      ENABLE_TELEMETRY: ${ENABLE_TELEMETRY:-true}
+      RW_TELEMETRY_TYPE: ${RW_TELEMETRY_TYPE:-"docker-compose"}
+    container_name: risingwave-standalone
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - bash -c 'printf \"GET / HTTP/1.1\n\n\" > /dev/tcp/127.0.0.1/6660; exit $$?;'
+        - bash -c 'printf \"GET / HTTP/1.1\n\n\" > /dev/tcp/127.0.0.1/5688; exit $$?;'
+        - bash -c 'printf \"GET / HTTP/1.1\n\n\" > /dev/tcp/127.0.0.1/4566; exit $$?;'
+        - bash -c 'printf \"GET / HTTP/1.1\n\n\" > /dev/tcp/127.0.0.1/5690; exit $$?;'
+      interval: 1s
+      timeout: 5s
+    networks:
+      internal:
+    # restart: always
+    # deploy:
+    #   resources:
+    #     limits:
+    #       memory: 28G
+    #     reservations:
+    #       memory: 28G
+
 
 networks:
   internal:

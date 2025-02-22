@@ -25,6 +25,29 @@ tasks:
       - "/usr/bin/mc mb $S3_ALIAS/$AWS_BUCKET"  # バケット作成
       - "/usr/bin/mc anonymous set public $S3_ALIAS/$AWS_BUCKET"  # public にする
 
+  - id: cleanup_bucket_for_risingwave
+    type: io.kestra.plugin.scripts.shell.Commands
+    runner: DOCKER
+    docker:
+      image: minio/mc
+      entryPoint:
+        - ""
+      networkMode: "internal"
+    env:
+      S3_ALIAS: "myminio"
+      AWS_S3_LOCATION: "{{ kv('AWS_S3_LOCATION') }}"
+      AWS_ACCESS_KEY_ID: "{{ kv('AWS_ACCESS_KEY_ID') }}"
+      AWS_SECRET_ACCESS_KEY: "{{ kv('AWS_SECRET_ACCESS_KEY') }}"
+      AWS_REGION: "{{ kv('AWS_REGION') }}"
+      MLFLOW_BUCKET: "hummock001"
+    commands:
+      # - "echo $AWS_S3_LOCATION $AWS_ACCESS_KEY_ID $AWS_SECRET_ACCESS_KEY $AWS_REGION"
+      - "/usr/bin/mc alias set $S3_ALIAS $AWS_S3_LOCATION $AWS_ACCESS_KEY_ID $AWS_SECRET_ACCESS_KEY"
+      - "/usr/bin/mc ls $S3_ALIAS"
+      - "/usr/bin/mc rb --force $S3_ALIAS/$MLFLOW_BUCKET"  # バケット削除
+      - "/usr/bin/mc mb $S3_ALIAS/$MLFLOW_BUCKET"  # バケット作成
+      - "/usr/bin/mc anonymous set public $S3_ALIAS/$MLFLOW_BUCKET"  # public にする
+
   - id: cleanup_bucket_for_mlflow
     type: io.kestra.plugin.scripts.shell.Commands
     runner: DOCKER
@@ -47,6 +70,24 @@ tasks:
       - "/usr/bin/mc rb --force $S3_ALIAS/$MLFLOW_BUCKET"  # バケット削除
       - "/usr/bin/mc mb $S3_ALIAS/$MLFLOW_BUCKET"  # バケット作成
       - "/usr/bin/mc anonymous set public $S3_ALIAS/$MLFLOW_BUCKET"  # public にする
+
+  - id: cleanup_schema_for_mlflow
+    type: io.kestra.plugin.scripts.shell.Commands
+    runner: DOCKER
+    docker:
+      image: minio/mc
+      entryPoint:
+        - ""
+      networkMode: "internal"
+    env:
+      S3_ALIAS: "myminio"
+      AWS_S3_LOCATION: "{{ kv('AWS_S3_LOCATION') }}"
+      AWS_ACCESS_KEY_ID: "{{ kv('AWS_ACCESS_KEY_ID') }}"
+      AWS_SECRET_ACCESS_KEY: "{{ kv('AWS_SECRET_ACCESS_KEY') }}"
+      AWS_REGION: "{{ kv('AWS_REGION') }}"
+      MLFLOW_BUCKET: "mlflow"
+    commands:
+      - "echo [NOTIMPLEMENT] CREATE SCHEMA mlflow_catalog; -- mlflow で使用するスキーマを作成します"
 
   # TODO: warehouse を指定していないのに、なぜ s3://warehouse にリクエストがいくのか？
   - id: custom_image
