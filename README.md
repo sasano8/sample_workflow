@@ -88,12 +88,12 @@ mlflow deployments update -t triton --flavor triton --name yolov6n -m models:/yo
 
 - [x] : ワークフローの構築を学ぶ
 - [x] : データビルド
-  - [x] : dbt を学ぶ
+  - [x] : dbt を構築する
 - [ ] : データセット管理
-  - [ ] : Iceberg を学ぶ
-  - [ ] : UnityCatalog を学ぶ
-  - [ ] : 機械学習向けデータセット
-    - [ ] : Huggingface datasets
+  - [x] : Iceberg を構築する
+  - [x] : UnityCatalog を構築する
+  - [x] : 機械学習向けデータセット
+    - [x] : Huggingface datasets
     - 動画データセット
       - [ ] : webdataset（CVAT・Supervisely などの様々なアノテーションツールでサポートされていて一番有力そう。datasets とも連携できそう）
       - [ ] : その他（deeplake, zarr, Petastorm, LMDB）

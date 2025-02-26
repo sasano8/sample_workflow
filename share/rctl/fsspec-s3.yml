@@ -1,0 +1,18 @@
+fsspec-s3:
+    description: "init"
+    state: "created"
+    connector:
+        protocol: s3
+        endpoint_url: "http://minio:9000"
+        key: "admin"
+        secret: "password"
+    module:
+        type: "fsspec"
+        subtype: "file"
+        params:
+            bucket: "test-cache"
+            path: "fsspec/s3/test.txt"
+            content: "test"
+    timeout: 100
+    retry: 3
+    wait_time: 0

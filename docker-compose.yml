@@ -18,7 +18,7 @@ services:
     ports:
       - 9001:9001
       - 9000:9000
-    command: ["server", "/data", "--console-address", ":9001", "--address", ":9000"]
+    command: ["server", "/data", "--console-address", ":9001", "--address", "0.0.0.0:9000"]
 
   # https://projectnessie.org/guides/spark-s3/#setting-up-spark-session-for-minio
   nessie:
@@ -261,6 +261,7 @@ services:
       POSTGRES_DB: "dev"
       POSTGRES_USER: "admin"
       POSTGRES_PASSWORD: "password"
+    command: "postgres -c wal_level=logical"
 
   risingwave:
     image: risingwavelabs/risingwave:v2.1.0
@@ -319,6 +320,8 @@ services:
       # If ENABLE_TELEMETRY is not set, telemetry will start by default
       ENABLE_TELEMETRY: ${ENABLE_TELEMETRY:-true}
       RW_TELEMETRY_TYPE: ${RW_TELEMETRY_TYPE:-"docker-compose"}
+      # USER: root
+      # DB: dev
     container_name: risingwave-standalone
     healthcheck:
       test:
@@ -331,7 +334,7 @@ services:
       timeout: 5s
     networks:
       internal:
-    # restart: always
+    restart: always  # すぐ落ちる
     # deploy:
     #   resources:
     #     limits:
@@ -339,6 +342,12 @@ services:
     #     reservations:
     #       memory: 28G
 
+  rctl:
+    image: sasano8/rtcl:latest
+    networks:
+        internal:
+    volumes:
+      - "./share/rctl:/app"
 
 networks:
   internal:
