@@ -10,7 +10,7 @@ fsspec-s3:
         type: "boto3"
         subtype: "policy"
         params:
-            bucket_name: "test-cache"
+            bucket_name: "hummock001"
             policy_name: "public"
     timeout: 100
     retry: 3

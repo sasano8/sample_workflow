@@ -348,6 +348,7 @@ services:
         internal:
     volumes:
       - "./share/rctl:/app"
+    command: ["resource", "apply", "--from-dir", "."]
 
 networks:
   internal:

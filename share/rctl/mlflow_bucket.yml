@@ -8,11 +8,13 @@ fsspec-s3:
         secret: "password"
     module:
         type: "fsspec"
-        subtype: "file"
+        subtype: "bucket"
+        # subtype: "dir"
+        # subtype: "file"
         params:
-            bucket: "test-cache"
-            path: "fsspec/s3/test.txt"
-            content: "test"
+            bucket: "mlflow"
+            # path: "fsspec/s3/test.txt"
+            # content: "test"
     timeout: 100
     retry: 3
     wait_time: 0
