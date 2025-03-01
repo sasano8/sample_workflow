@@ -1,6 +1,6 @@
 fsspec-s3:
     description: "init"
-    state: "created"
+    state: "exists"
     connector:
         protocol: s3
         endpoint_url: "http://minio:9000"
@@ -8,14 +8,7 @@ fsspec-s3:
         secret: "password"
     module:
         type: "fsspec"
-        subtype: "bucket"
-        # subtype: "dir"
-        # subtype: "file"
-        params:
-            bucket: "mlflow"
-            # path: "fsspec/s3/test.txt"
-            # content: "test"
+        subtype: "service"
     timeout: 100
     retry: 3
     wait_time: 0
-

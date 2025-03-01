@@ -1,0 +1,15 @@
+postgres-schema:
+  description: "init"
+  state: "created"
+  connector:
+      host: postgres
+      dbname: dev
+      user: admin
+      password: password
+      port: 5432
+  module:
+      type: psycopg2
+      subtype: schema
+      params:
+          schema: "kestra"
+  wait_time: 0

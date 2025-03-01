@@ -1,0 +1,13 @@
+postgres-schema:
+  description: "init"
+  state: "exists"
+  connector:
+      host: postgres
+      dbname: dev
+      user: admin
+      password: password
+      port: 5432
+  module:
+      type: psycopg2
+      subtype: service
+  wait_time: 0

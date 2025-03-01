@@ -5,6 +5,24 @@ x-v01: &MINIO_ROOT_USER "${MINIO_ROOT_USER:-admin}"
 x-v02: &MINIO_ROOT_PASSWORD "${MINIO_ROOT_PASSWORD:-password}"
 
 services:
+  # depends
+  # kestra: >= postgres:16
+  postgres:
+    image: postgres:16
+    # container_name: postgres_pta
+    networks:
+      internal:
+    ports:
+      - 5432:5432
+    volumes:
+      - .volume/postgres:/var/lib/postgresql/data
+    environment:
+      TZ: "UTC"
+      POSTGRES_DB: "dev"
+      POSTGRES_USER: "admin"
+      POSTGRES_PASSWORD: "password"
+    command: "postgres -c wal_level=logical"
+
   minio:
     image: minio/minio
     environment:
@@ -61,6 +79,7 @@ services:
       - local  # 開発用　データベースなどが内包されている
       - "--flow-path"  # 起動時に読み込むフロー
       - "/mnt/share/builtins/kestra_flows"
+    # environment:  # https://kestra.io/docs/installation/docker
 
   mlflow:
     networks:
@@ -247,21 +266,6 @@ services:
 
 # docker コンテナのメトリクス管理
 # google/cadvisor:latest
-  postgres:
-    image: postgres:14
-    # container_name: postgres_pta
-    networks:
-      internal:
-    ports:
-      - 5432:5432
-    volumes:
-      - .volume/postgres:/var/lib/postgresql/data
-    environment:
-      TZ: "UTC"
-      POSTGRES_DB: "dev"
-      POSTGRES_USER: "admin"
-      POSTGRES_PASSWORD: "password"
-    command: "postgres -c wal_level=logical"
 
   risingwave:
     image: risingwavelabs/risingwave:v2.1.0
@@ -314,7 +318,7 @@ services:
       - minio
     volumes:
       - ".configs/risingwave.toml:/risingwave.toml"
-      - ".volume/meta-0:/meta-data"
+      - ".volume/risingwave-0:/meta-data"
     environment:
       RUST_BACKTRACE: "1"
       # If ENABLE_TELEMETRY is not set, telemetry will start by default
