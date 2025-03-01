@@ -354,6 +354,19 @@ services:
       - "./share/rctl:/app"
     command: ["resource", "apply", "--from-dir", "."]
 
+  dataloader:
+    build:
+      context: ./containers/dataloader
+    environment:
+      AWS_ACCESS_KEY_ID: "admin"
+      AWS_SECRET_ACCESS_KEY: "password"
+      AWS_REGION: "us-east-1"
+      ICEBERG_URL: "http://nessie:19120/iceberg/main/"
+      ICEBERG_REF: "main"
+      ICEBERG_DEFAULT_NAMESPACE: "default"
+    networks:
+        internal:
+
 networks:
   internal:
     name: internal
