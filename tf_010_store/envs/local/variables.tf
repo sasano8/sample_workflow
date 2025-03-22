@@ -30,11 +30,6 @@ variable "minio_endpoint" {
   default = "http://localhost:9000"
 }
 
-variable "rw_state_store_endpoint" {
-  type = string
-  default = "hummock+minio://adminuser:adminuser@minio:9000/hummock001"
-}
-
 variable "postgres_host" {
   type = string
   default = "localhost"
@@ -65,5 +60,44 @@ variable "postgres_schemas" {
   default = {
     kestra          = "adminuser"
     mlflow_catalog  = "adminuser"
+  }
+}
+
+variable "rw_state_store_endpoint" {
+  type = string
+  default = "hummock+minio://adminuser:adminuser@minio:9000/hummock001"
+}
+
+
+variable "rw_host" {
+  type = string
+  default = "localhost"
+}
+
+variable "rw_port" {
+  type = number
+  default = 4566
+}
+
+variable "rw_user" {
+  type    = string
+  default = "root"
+}
+
+variable "rw_password" {
+  type    = string
+  default = ""
+}
+
+variable "rw_db" {
+  type    = string
+  default = "dev"
+}
+
+variable "rw_schemas" {
+  type = map(string)
+  default = {
+    kestra          = "root"
+    mlflow_catalog  = "root"
   }
 }

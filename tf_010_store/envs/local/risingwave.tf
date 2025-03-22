@@ -1,26 +1,3 @@
-variable "rw_user" {
-  type    = string
-  default = "root"
-}
-
-variable "rw_password" {
-  type    = string
-  default = ""
-}
-
-variable "rw_db" {
-  type    = string
-  default = "dev"
-}
-
-variable "rw_schemas" {
-  type = map(string)
-  default = {
-    warehouse        = "admin"
-    gmailattachments = "admin"
-  }
-}
-
 variable "enable_telemetry" {
   type    = bool
   default = true
@@ -36,7 +13,7 @@ resource "docker_image" "risingwave" {
 }
 
 resource "docker_container" "risingwave" {
-  depends_on = [docker_container.minio]
+  depends_on = [aws_s3_bucket.buckets]
   networks_advanced {
     name = docker_network.internal.name
   }
@@ -60,7 +37,7 @@ resource "docker_container" "risingwave" {
 
   ports {
     internal = 4566
-    external = 4566  # db port
+    external = var.rw_port  # db port
   }
   ports {
     internal = 5690
@@ -91,5 +68,41 @@ resource "docker_container" "risingwave" {
     test = ["CMD-SHELL", "bash -c 'printf \"GET / HTTP/1.1\\n\\n\" > /dev/tcp/127.0.0.1/6660'", "bash -c 'printf \"GET / HTTP/1.1\\n\\n\" > /dev/tcp/127.0.0.1/5688'", "bash -c 'printf \"GET / HTTP/1.1\\n\\n\" > /dev/tcp/127.0.0.1/4566'", "bash -c 'printf \"GET / HTTP/1.1\\n\\n\" > /dev/tcp/127.0.0.1/5690'"]
     interval = "1s"
     timeout  = "5s"
+  }
+}
+
+provider "postgresql" {
+  alias           = "risingwave"
+  host            = var.rw_host
+  port            = var.rw_port
+  username        = var.rw_user
+  password        = var.rw_password
+  database        = var.rw_db
+  sslmode         = "disable"
+}
+
+resource "null_resource" "wait_for_risingwave" {
+  depends_on = [docker_container.risingwave]
+
+  provisioner "local-exec" {
+    command = <<EOT
+      bash -c 'for i in {1..10}; do \
+        PGPASSWORD="${var.rw_password}" psql -h ${var.rw_host} -p ${var.rw_port} -U ${var.rw_user} -d ${var.rw_db} -c "SELECT 1" && exit 0 || sleep 2; \
+      done; exit 1'
+    EOT
+  }
+}
+
+# postgresql プロバイダーは使えないので psql経由で実行
+resource "null_resource" "init_rw_schema" {
+  depends_on = [null_resource.wait_for_risingwave]
+  for_each   = var.rw_schemas
+
+  provisioner "local-exec" {
+    command = <<EOT
+      bash -c 'for i in {1..1}; do \
+        PGPASSWORD="${var.rw_password}" psql -h ${var.rw_host} -p ${var.rw_port} -U ${var.rw_user} -d ${var.rw_db} -c "CREATE SCHEMA IF NOT EXISTS ${each.key} AUTHORIZATION ${each.value}" && exit 0; \
+      done; exit 1'
+    EOT
   }
 }

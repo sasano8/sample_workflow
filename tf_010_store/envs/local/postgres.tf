@@ -26,6 +26,7 @@ resource "docker_container" "postgres" {
 }
 
 provider "postgresql" {
+  alias           = "postgresql"
   host            = var.postgres_host
   port            = var.postgres_port
   username        = var.postgres_user
@@ -42,7 +43,8 @@ resource "null_resource" "wait_for_postgres" {
   }
 }
 
-resource "postgresql_schema" "schemas" {
+resource "postgresql_schema" "db_schemas" {
+  provider = postgresql.postgresql
   depends_on = [null_resource.wait_for_postgres]
 
   for_each = var.postgres_schemas
