@@ -19,11 +19,6 @@ variable "minio_region" {
   default = "us-east-1"
 }
 
-variable "network_name" {
-  type = string
-  default = "internal"
-}
-
 variable "buckets" {
   type    = map(string)
   default = {
@@ -32,5 +27,38 @@ variable "buckets" {
     "mlflow" = "public",
     "warehouse" = "public",
     "gmailattachments" = "public",
+  }
+}
+
+variable "postgres_host" {
+  type = string
+  default = "localhost"
+}
+
+variable "postgres_port" {
+  type = number
+  default = 5432
+}
+
+variable "postgres_user" {
+  type    = string
+  default = "adminuser"
+}
+
+variable "postgres_password" {
+  type    = string
+  default = "adminuser"
+}
+
+variable "postgres_db" {
+  type    = string
+  default = "dev"
+}
+
+variable "postgres_schemas" {
+  type = map(string) # schema名 => オーナー
+  default = {
+    kestra          = "adminuser"
+    mlflow_catalog  = "adminuser"
   }
 }
