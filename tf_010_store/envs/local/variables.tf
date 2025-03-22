@@ -1,8 +1,3 @@
-variable "minio_endpoint" {
-  type = string
-  default = "http://localhost:9000"
-}
-
 variable "minio_root_user" {
   type = string
   default = "adminuser"
@@ -28,6 +23,16 @@ variable "buckets" {
     "warehouse" = "public",
     "gmailattachments" = "public",
   }
+}
+
+variable "minio_endpoint" {
+  type = string
+  default = "http://localhost:9000"
+}
+
+variable "rw_state_store_endpoint" {
+  type = string
+  default = "hummock+minio://adminuser:adminuser@minio:9000/hummock001"
 }
 
 variable "postgres_host" {
@@ -56,7 +61,7 @@ variable "postgres_db" {
 }
 
 variable "postgres_schemas" {
-  type = map(string) # schema名 => オーナー
+  type = map(string)
   default = {
     kestra          = "adminuser"
     mlflow_catalog  = "adminuser"
