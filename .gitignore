@@ -19,7 +19,7 @@ docker-compose.override.yml
 .env
 
 # terraform
-./terraform/
+.terraform/
 terraform.tfstate
 terraform.tfstate.backup
 # .terraform.lock.hcl  # これはterraformで使うパッケージマネージャーなので管理した方がよい
