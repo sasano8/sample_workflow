@@ -26,13 +26,13 @@ resource "docker_container" "postgres" {
 }
 
 provider "postgresql" {
-  alias           = "postgresql"
-  host            = var.postgres_host
-  port            = var.postgres_port
-  username        = var.postgres_user
-  password        = var.postgres_password
-  database        = var.postgres_db
-  sslmode         = "disable"
+  alias    = "postgresql"
+  host     = var.postgres_host
+  port     = var.postgres_port
+  username = var.postgres_user
+  password = var.postgres_password
+  database = var.postgres_db
+  sslmode  = "disable"
 }
 
 resource "null_resource" "wait_for_postgres" {
@@ -44,10 +44,10 @@ resource "null_resource" "wait_for_postgres" {
 }
 
 resource "postgresql_schema" "db_schemas" {
-  provider = postgresql.postgresql
+  provider   = postgresql.postgresql
   depends_on = [null_resource.wait_for_postgres]
 
   for_each = var.postgres_schemas
-  name  = each.key
-  owner = each.value
+  name     = each.key
+  owner    = each.value
 }

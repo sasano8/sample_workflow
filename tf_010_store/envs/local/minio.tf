@@ -33,8 +33,8 @@ resource "docker_container" "minio" {
 }
 
 provider "aws" {
-  alias   = "minio"
-  region  = var.minio_region
+  alias      = "minio"
+  region     = var.minio_region
   access_key = var.minio_root_user
   secret_key = var.minio_root_password
   endpoints {
@@ -62,22 +62,22 @@ resource "aws_s3_bucket" "buckets" {
   provider   = aws.minio
 
   for_each = var.buckets
-  bucket = each.key
+  bucket   = each.key
 }
 
 resource "aws_s3_bucket_policy" "policies" {
   depends_on = [aws_s3_bucket.buckets]
-  provider = aws.minio
+  provider   = aws.minio
 
   for_each = aws_s3_bucket.buckets
-  bucket = each.value.id
+  bucket   = each.value.id
 
   policy = jsonencode(
     var.buckets[each.key] == "public" ? {
       Version = "2012-10-17",
       Statement = [
         {
-          Effect  = "Allow",
+          Effect = "Allow",
           Principal = {
             AWS = [
               "*"
@@ -93,7 +93,7 @@ resource "aws_s3_bucket_policy" "policies" {
           ]
         },
         {
-          Effect  = "Allow",
+          Effect = "Allow",
           Principal = {
             AWS = [
               "*"
@@ -111,8 +111,8 @@ resource "aws_s3_bucket_policy" "policies" {
           ]
         },
       ]
-    } : {
-      Version = "2012-10-17",
+      } : {
+      Version   = "2012-10-17",
       Statement = []
     }
   )

@@ -1,12 +1,12 @@
 variable "minio_root_user" {
-  type = string
+  type    = string
   default = "adminuser"
 }
 
 variable "minio_root_password" {
-  type = string
+  type      = string
   sensitive = true
-  default = "adminuser"
+  default   = "adminuser"
 }
 
 variable "minio_region" {
@@ -15,28 +15,28 @@ variable "minio_region" {
 }
 
 variable "buckets" {
-  type    = map(string)
+  type = map(string)
   default = {
-    "tf-state-store" = "private",
-    "hummock001" = "private",
-    "mlflow" = "public",
-    "warehouse" = "public",
+    "tf-state-store"   = "private",
+    "hummock001"       = "private",
+    "mlflow"           = "public",
+    "warehouse"        = "public",
     "gmailattachments" = "public",
   }
 }
 
 variable "minio_endpoint" {
-  type = string
+  type    = string
   default = "http://localhost:9000"
 }
 
 variable "postgres_host" {
-  type = string
+  type    = string
   default = "localhost"
 }
 
 variable "postgres_port" {
-  type = number
+  type    = number
   default = 5432
 }
 
@@ -58,24 +58,24 @@ variable "postgres_db" {
 variable "postgres_schemas" {
   type = map(string)
   default = {
-    kestra          = "adminuser"
-    mlflow_catalog  = "adminuser"
+    kestra         = "adminuser"
+    mlflow_catalog = "adminuser"
   }
 }
 
 variable "rw_state_store_endpoint" {
-  type = string
+  type    = string
   default = "hummock+minio://adminuser:adminuser@minio:9000/hummock001"
 }
 
 
 variable "rw_host" {
-  type = string
+  type    = string
   default = "localhost"
 }
 
 variable "rw_port" {
-  type = number
+  type    = number
   default = 4566
 }
 
@@ -97,7 +97,7 @@ variable "rw_db" {
 variable "rw_schemas" {
   type = map(string)
   default = {
-    kestra          = "root"
-    mlflow_catalog  = "root"
+    kestra         = "root"
+    mlflow_catalog = "root"
   }
 }

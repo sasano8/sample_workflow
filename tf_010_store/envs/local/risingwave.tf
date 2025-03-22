@@ -37,7 +37,7 @@ resource "docker_container" "risingwave" {
 
   ports {
     internal = 4566
-    external = var.rw_port  # db port
+    external = var.rw_port # db port
   }
   ports {
     internal = 5690
@@ -45,11 +45,11 @@ resource "docker_container" "risingwave" {
   }
   ports {
     internal = 5691
-    external = 5691  # UI
+    external = 5691 # UI
   }
   ports {
     internal = 1250
-    external = 1250  # log?
+    external = 1250 # log?
   }
 
   volumes {
@@ -65,20 +65,20 @@ resource "docker_container" "risingwave" {
   restart = "always"
 
   healthcheck {
-    test = ["CMD-SHELL", "bash -c 'printf \"GET / HTTP/1.1\\n\\n\" > /dev/tcp/127.0.0.1/6660'", "bash -c 'printf \"GET / HTTP/1.1\\n\\n\" > /dev/tcp/127.0.0.1/5688'", "bash -c 'printf \"GET / HTTP/1.1\\n\\n\" > /dev/tcp/127.0.0.1/4566'", "bash -c 'printf \"GET / HTTP/1.1\\n\\n\" > /dev/tcp/127.0.0.1/5690'"]
+    test     = ["CMD-SHELL", "bash -c 'printf \"GET / HTTP/1.1\\n\\n\" > /dev/tcp/127.0.0.1/6660'", "bash -c 'printf \"GET / HTTP/1.1\\n\\n\" > /dev/tcp/127.0.0.1/5688'", "bash -c 'printf \"GET / HTTP/1.1\\n\\n\" > /dev/tcp/127.0.0.1/4566'", "bash -c 'printf \"GET / HTTP/1.1\\n\\n\" > /dev/tcp/127.0.0.1/5690'"]
     interval = "1s"
     timeout  = "5s"
   }
 }
 
 provider "postgresql" {
-  alias           = "risingwave"
-  host            = var.rw_host
-  port            = var.rw_port
-  username        = var.rw_user
-  password        = var.rw_password
-  database        = var.rw_db
-  sslmode         = "disable"
+  alias    = "risingwave"
+  host     = var.rw_host
+  port     = var.rw_port
+  username = var.rw_user
+  password = var.rw_password
+  database = var.rw_db
+  sslmode  = "disable"
 }
 
 resource "null_resource" "wait_for_risingwave" {
