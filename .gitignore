@@ -16,3 +16,12 @@ wheels/
 
 # Others
 docker-compose.override.yml
+.env
+
+# terraform
+./terraform/
+terraform.tfstate
+terraform.tfstate.backup
+# .terraform.lock.hcl  # これはterraformで使うパッケージマネージャーなので管理した方がよい
+*.tfvars  # 変数ファイルを除外
+!*.static.tfvars  # ただし、static は除外する
